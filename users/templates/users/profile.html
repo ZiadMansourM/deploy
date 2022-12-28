@@ -1,0 +1,146 @@
+{% extends "main/base.html" %} 
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'users/css/bootstrap-datepicker.min.css' %}" rel="stylesheet" type='text/css'>
+{% endblock css %}
+
+{% block js %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="{% static 'users/js/bootstrap-datepicker.min.js' %}" type='text/javascript'></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('#datepicker').datepicker({
+                "format": "MM dd, yyyy",
+            });
+        });
+    </script>        
+{% endblock js %}
+
+{% block content %}
+    <section id="login">
+        <div class="form-signin">
+            <form  action="" method="POST">
+                {% csrf_token %}
+                <h1 class="h3 mb-3 fw-normal">Profile</h1>
+                <hr>
+                <div class="form-floating pb-2">
+                    <input name="username" value="{{ user.username }}" type="text" class="form-control" id="floatingInputLogin" placeholder="Enter username" required>
+                    <label for="floatingInputLogin">Username</label>
+                </div>
+                <div class="form-floating pb-2">
+                    <input name="email" value="{{ user.email }}" type="email" class="form-control" id="floatingInputLogin" placeholder="Enter username">
+                    <label for="floatingInputLogin">Email</label>
+                </div>
+                <!-- Select Gender -->
+                <select name="gender" class="form-select form-select-lg mb-2 form-control" aria-label=".form-select-lg example">
+                    <option value="" {% if not user.gender %} selected {% endif %}>Gender</option>
+                    <option value="0" {% if user.gender == 0 %} selected {% endif %}>Male</option>
+                    <option value="1" {% if user.gender == 1 %} selected {% endif %}>Female</option>
+                </select>
+                <div class="form-floating pb-2">
+                    <input name="birthday" x-bind:value="'{{ user.birthday }}'=='None'?'':'{{ user.birthday|date:"F d, Y" }}'" data-provide="datepicker" type="text" class="form-control" id="datepicker"/>
+                    <label for="floatingInputLogin">Birthday</label>
+                </div>
+                <div class="form-floating pb-2">
+                    <input name="nationality" x-bind:value="'{{ user.nationality }}'=='None'?'':'{{ user.nationality }}'" value="{{ user.nationality }}" type="text" class="form-control" id="floatingInputLogin" placeholder="Enter username">
+                    <label for="floatingInputLogin">Nationality</label>
+                </div>
+                <!-- Three buttons on a row -->
+                <div class="row">
+                    <div class="col">
+                        <button type="submit" class="w-100 btn btn-sm btn-primary">Update</button>
+                    </div>
+                    <div class="col">
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#changePasswordModel" class="w-100 btn btn-sm btn-danger">Change Password</button>
+                    </div>
+                </div>
+                <button type="button" data-bs-toggle="modal" data-bs-target="#ViewTicketsModal" class="w-100 btn btn-success mt-2">View Tickets</button>
+            </form>
+        </div>
+    </section>
+    <!-- View Tickets -->
+    <div class="modal fade custom-model" id="ViewTicketsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="ViewTicketsModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <!-- Hidden Input -->
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ViewTicketsModal">Your Tickets</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table text-white">
+                            <thead>
+                                <tr class="d-flex">
+                                    <th class="col-1" scope="col">#</th>
+                                    <th class="col-4" scope="col">Match</th>
+                                    <th class="col-2" scope="col">Seat</th>
+                                    <th class="col-3" scope="col">Price</th>
+                                    <th class="col-2" scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ticket in tickets %}
+                                    <tr class="d-flex">
+                                        <th class="col-1" scope="row">{{ forloop.counter }}</th>
+                                        <td class="col-4 ellipses">{{ ticket.match }}</td>
+                                        <td class="col-2">{{ ticket.seat.seat_name }}</td>
+                                        <td class="col-3">{{ ticket.price }}</td>
+                                        <form id="delete-form-{{ ticket.id }}" action="" method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="ticket-id" value="{{ ticket.id }}">
+                                            <td class="col-2"><a data-bs-dismiss="modal" x-on:click="document.getElementById('delete-form-{{ ticket.id }}').submit();">delete</a></td>
+                                        </form>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary fw-bold border-white bg-white" data-bs-dismiss="modal">Nice</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Change Password Modal -->
+    <div class="modal fade custom-model" id="changePasswordModel" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="detailMatchModel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form  action="" method="POST">
+                    {% csrf_token %}
+                    <!-- Hidden Input -->
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="detailMatchModel">Change Your Password</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="floatingInputDrguid" value="{{ user.id }}" readonly>
+                            <label for="floatingInputDrguid">User Guid</label>
+                        </div>
+                        <!-- Same Column -->
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-floating">
+                                    <input name="password-one" type="password" class="form-control" id="floatingPassword" placeholder="Password" required>
+                                    <label for="floatingPassword">Password One</label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-floating">
+                                    <input name="password-two" type="password" class="form-control" id="floatingPassword" placeholder="Password" required>
+                                    <label for="floatingPassword">Password Two</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="w-100 btn btn-sm btn-danger">Update Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
